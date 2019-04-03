@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 const User = mongoose.model('User')
+const passport = require('passport')
 
 exports.validateSignup = (req, res, next) => {
   req.sanitizeBody('name')
@@ -9,7 +10,7 @@ exports.validateSignup = (req, res, next) => {
   req.checkBody('name', 'Enter a name').notEmpty()
   req.checkBody('name', 'Name must be between 4 and 10 characters')
     .isLength({ min: 4, max: 10 })
-  
+
   req.checkBody('email', 'Enter a valid email')
     .isEmail()
     .normalizeEmail()
@@ -33,12 +34,28 @@ exports.signup = async (req, res) => {
     if (err) {
       return res.status(500).send(err.message)
     }
-    res.json(user)
+    res.json(user.name)
   })
-};
+}
 
-exports.signin = () => {};
+exports.signin = (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
+    if (err) {
+      return res.status(500).json(err.message)
+    }
+    if (!user) {
+      return res.status(400).json(info.message)
+    }
 
-exports.signout = () => {};
+    req.logIn(user, err => {
+      if (err) {
+        return res.status(500).json(err.message)
+      }
+      res.json(user)
+    })
+  })(req, res, next)
+}
 
-exports.checkAuth = () => {};
+exports.signout = () => {}
+
+exports.checkAuth = () => {}
