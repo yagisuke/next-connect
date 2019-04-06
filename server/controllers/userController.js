@@ -6,7 +6,15 @@ exports.getUsers = async (req, res) => {
   res.json(users)
 }
 
-exports.getAuthUser = () => {}
+exports.getAuthUser = async (req, res) => {
+  if (!req.isAuthUser) {
+    res.status(403).json({
+      message: 'You are unauthenricated. Please sign in or sign up'
+    })
+    return res.redirect('/signin')
+  }
+  res.json(req.user)
+}
 
 exports.getUserById = async (req, res, next, id) => {
   const user = await User.findOne({ _id: id })
@@ -14,7 +22,7 @@ exports.getUserById = async (req, res, next, id) => {
 
   const profileId = mongoose.Types.ObjectId(req.profile._id)
 
-  if (profileId.equals(req.user._id)) {
+  if (req.user && profileId.equals(req.user._id)) {
     req.isAuthUser = true
     return next()
   }
