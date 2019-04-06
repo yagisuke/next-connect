@@ -58,9 +58,26 @@ exports.deleteUser = async (req, res) => {
   res.json(deletedUser)
 }
 
-exports.addFollowing = () => {}
+exports.addFollowing = async (req, res, next) => {
+  const { followId } = req.body
 
-exports.addFollower = () => {}
+  await User.findOneAndUpdate(
+    { _id: req.user._id },
+    { $push: { following: followId } }
+  )
+  next()
+}
+
+exports.addFollower = async (req, res) => {
+  const { followId } = req.body
+
+  const user = await User.findOneAndUpdate(
+    { _id: followId },
+    { $push: { followers: req.user._id } },
+    { new: true }
+  )
+  res.json(user)
+}
 
 exports.deleteFollowing = () => {}
 
