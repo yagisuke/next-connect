@@ -1,5 +1,7 @@
 const mongoose = require('mongoose')
 const User = mongoose.model('User')
+const multer = require('multer')
+const jimp = require('jimp')
 
 exports.getUsers = async (req, res) => {
   const users = await User.find().select('_id name email createdAt updatedAt')
@@ -48,11 +50,40 @@ exports.getUserFeed = async (req, res) => {
   res.json(users)
 }
 
-exports.uploadAvatar = () => {}
+const avatarUploadOptions = {
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 1024 * 1024 * 1
+  },
+  fileFilter: (req, file, next) => {
+    const isImage = file.mimetype.startsWith('image/')
+    next(null, isImage)
+  }
+}
 
-exports.resizeAvatar = () => {}
+exports.uploadAvatar = multer(avatarUploadOptions).single('avatar')
 
-exports.updateUser = () => {}
+exports.resizeAvatar = async (req, res, next) => {
+  if (!req.file) {
+    return next()
+  }
+  const extension = req.file.mimetype.split('/')[1]
+  req.body.avatar = `/static/uploads/avatars/${req.user.name}-${Date.now()}.${extension}`
+  const image = await jimp.read(req.file.buffer)
+  await image.resize(250, jimp.AUTO)
+  await image.write(`./${req.body.avatar}`)
+  next()
+}
+
+exports.updateUser = async (req, res) => {
+  req.body.updatedAt = new Date().toISOString()
+  const updatedUser = await User.findOneAndUpdate(
+    { _id: req.user._id },
+    { $set: req.body },
+    { new: true, runValidators: true }
+  )
+  res.json(updatedUser)
+}
 
 exports.deleteUser = async (req, res) => {
   const { userId } = req.params
