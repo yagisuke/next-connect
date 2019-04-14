@@ -15,14 +15,24 @@ import Slide from '@material-ui/core/Slide'
 import Gavel from '@material-ui/icons/Gavel'
 import VerifiedUserTwoTone from '@material-ui/icons/VerifiedUserTwoTone'
 import withStyles from '@material-ui/core/styles/withStyles'
+import Link from 'next/link'
 
 import { signupUser } from '../lib/auth'
+
+function Transition(props) {
+  return <Slide direction="up" {...props} />
+}
 
 class Signup extends React.Component {
   state = {
     name: '',
     email: '',
-    password: ''
+    password: '',
+    error: '',
+    createdUser: '',
+    openError: false,
+    openSuccess: false,
+    isLoading: false
   }
 
   handleChange = ({ target }) => {
@@ -31,15 +41,32 @@ class Signup extends React.Component {
 
   handleSubmit = event => {
     const { name, email, password } = this.state
+
     event.preventDefault()
     const user = { name, email, password }
-    signupUser(user).then(data => {
-      console.log(data)
-    })
+    this.setState({ isLoading: true, error: '' })
+
+    signupUser(user)
+      .then(createdUser => {
+        this.setState({
+          createdUser,
+          error: '',
+          openSuccess: true,
+          isLoading: false
+        })
+      }).catch(this.showError)
+  }
+
+  handleClose = () => this.setState({ openError: false })
+
+  showError = err => {
+    const error = (err.response && err.response.data) || err.message
+    this.setState({ error, openError: true, isLoading: false })
   }
 
   render() {
     const { classes } = this.props
+    const { error, createdUser, openError, openSuccess, isLoading } = this.state
 
     return (
       <div className={classes.root}>
@@ -83,12 +110,45 @@ class Signup extends React.Component {
               fullWidth
               variant="contained"
               color="primary"
+              disabled={isLoading}
               className={classes.submit}
             >
-              Sign up
+              {isLoading ? 'Sign up...' : 'Sign up'}
             </Button>
           </form>
+          {error && <Snackbar
+            anchorOrigin={{
+              vertical: 'bottom',
+              horizontal: 'right'
+            }}
+            open={openError}
+            onClose={this.handleClose}
+            autoHideDuration={6000}
+            message={<span className={classes.snack}>{error}</span>}
+          />}
         </Paper>
+        <Dialog
+          open={openSuccess}
+          disableBackdropClick={true}
+          TransitionComponent={Transition}
+        >
+          <DialogTitle>
+            <VerifiedUserTwoTone className={classes.icon} />
+            New Account
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              User {createdUser} successfully created!
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button color="primary" variant="contained">
+              <Link href="/signin">
+                <a className={classes.signinLink}>Sign in</a>
+              </Link>
+            </Button>
+          </DialogActions>
+        </Dialog>
       </div>
     )
   }
