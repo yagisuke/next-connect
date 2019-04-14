@@ -79,7 +79,7 @@ class Signup extends React.Component {
           </Typography>
           <form onSubmit={this.handleSubmit} className={classes.form}>
             <FormControl margin="normal" required fullWidth>
-            <InputLabel htmlFor="name">Name</InputLabel>
+              <InputLabel htmlFor="name">Name</InputLabel>
               <Input
                 name="name"
                 type="text"
