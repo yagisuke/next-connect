@@ -16,29 +16,50 @@ import Link from 'next/link'
 import { getUser } from '../lib/api'
 import { authInitialProps } from '../lib/auth'
 
+import FollowUser from '../components/profile/FollowUser'
+
 class Profile extends React.Component {
   state = {
     user: null,
     isAuth: false,
+    isFollowing: false,
     isLoading: true
   }
 
   componentDidMount() {
     const { userId, auth } = this.props
     const isAuth = auth.user._id === userId
-
+    
     getUser(userId).then(user => {
+      const isFollowing = this.checkFollow(auth, user)
       this.setState({
         user,
         isAuth,
+        isFollowing,
         isLoading: false
       })
     })
   }
 
+  checkFollow = (auth, user) => {
+    return user.followers.some(follower => {
+      return follower._id === auth.user._id
+    })
+  }
+
+  toggleFollow = sendRequest => {
+    const { userId } = this.props
+    const { isFollowing } = this.state
+
+    sendRequest(userId).then(() => {
+      this.setState({ isFollowing: !isFollowing })
+    })
+  }
+
   render() {
     const { classes } = this.props
-    const { user, isAuth, isLoading } = this.state
+    const { user, isAuth, isFollowing, isLoading } = this.state
+
     return (
       <Paper className={classes.root} elevation={4}>
         <Typography
@@ -76,7 +97,10 @@ class Profile extends React.Component {
                   </Link>
                 </ListItemSecondaryAction>
               ) : (
-                <div>Follow</div>
+                <FollowUser
+                  isFollowing={isFollowing}
+                  toggleFollow={this.toggleFollow}
+                />
               )}
             </ListItem>
             <Divider />
