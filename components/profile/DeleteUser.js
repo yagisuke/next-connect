@@ -6,11 +6,9 @@ import DialogContent from '@material-ui/core/DialogContent'
 import DialogContentText from '@material-ui/core/DialogContentText'
 import DialogTitle from '@material-ui/core/DialogTitle'
 import Delete from '@material-ui/icons/Delete'
-import Router from 'next/router'
 
 import { signoutUser } from '../../lib/auth'
 import { deleteUser } from '../../lib/api'
-
 
 class DeleteUser extends React.Component {
   state = {
@@ -25,7 +23,6 @@ class DeleteUser extends React.Component {
     deleteUser(user._id)
       .then(() => {
         signoutUser()
-        Router.push('/signup')
       }).catch(err => {
         this.setState({ isDeleting: false })
       })
