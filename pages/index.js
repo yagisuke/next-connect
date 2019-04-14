@@ -1,15 +1,16 @@
-// import CircularProgress from "@material-ui/core/CircularProgress";
-// import Drawer from "@material-ui/core/Drawer";
-// import Typography from "@material-ui/core/Typography";
-// import Grid from "@material-ui/core/Grid";
-// import Button from "@material-ui/core/Button";
-import withStyles from "@material-ui/core/styles/withStyles";
+// import CircularProgress from '@material-ui/core/CircularProgress'
+// import Drawer from '@material-ui/core/Drawer'
+// import Typography from '@material-ui/core/Typography'
+// import Grid from '@material-ui/core/Grid'
+// import Button from '@material-ui/core/Button'
+import withStyles from '@material-ui/core/styles/withStyles'
+import { authInitialProps } from '../lib/auth'
 
 class Index extends React.Component {
-  state = {};
+  state = {}
 
   render() {
-    return <div>Index</div>;
+    return <div>Index</div>
   }
 }
 
@@ -17,20 +18,20 @@ const styles = theme => ({
   root: {
     paddingTop: theme.spacing.unit * 10,
     paddingLeft: theme.spacing.unit * 5,
-    [theme.breakpoints.down("sm")]: {
+    [theme.breakpoints.down('sm')]: {
       paddingRight: theme.spacing.unit * 5
     }
   },
   progressContainer: {
-    height: "80vh"
+    height: '80vh'
   },
   progress: {
     margin: theme.spacing.unit * 2,
     color: theme.palette.secondary.light
   },
   drawerContainer: {
-    [theme.breakpoints.down("sm")]: {
-      display: "none"
+    [theme.breakpoints.down('sm')]: {
+      display: 'none'
     }
   },
   drawer: {
@@ -47,8 +48,10 @@ const styles = theme => ({
     maxWidth: 600,
     paddingTop: theme.spacing.unit * 8,
     paddingBottom: theme.spacing.unit * 6,
-    margin: "0 auto"
+    margin: '0 auto'
   }
-});
+})
 
-export default withStyles(styles)(Index);
+Index.getInitialProps = authInitialProps()
+
+export default withStyles(styles)(Index)
