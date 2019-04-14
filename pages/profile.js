@@ -16,6 +16,7 @@ import Link from 'next/link'
 import { getUser } from '../lib/api'
 import { authInitialProps } from '../lib/auth'
 
+import DeleteUser from '../components/profile/DeleteUser'
 import FollowUser from '../components/profile/FollowUser'
 
 class Profile extends React.Component {
@@ -95,6 +96,7 @@ class Profile extends React.Component {
                       </IconButton>
                     </a>
                   </Link>
+                  <DeleteUser user={user} />
                 </ListItemSecondaryAction>
               ) : (
                 <FollowUser
