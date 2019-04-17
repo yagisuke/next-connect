@@ -1,18 +1,39 @@
-// import CircularProgress from '@material-ui/core/CircularProgress'
-// import Drawer from '@material-ui/core/Drawer'
-// import Typography from '@material-ui/core/Typography'
-// import Grid from '@material-ui/core/Grid'
-// import Button from '@material-ui/core/Button'
+import CircularProgress from '@material-ui/core/CircularProgress'
+import Drawer from '@material-ui/core/Drawer'
+import Typography from '@material-ui/core/Typography'
+import Grid from '@material-ui/core/Grid'
+import Button from '@material-ui/core/Button'
 import withStyles from '@material-ui/core/styles/withStyles'
+import Router from 'next/router'
 import { authInitialProps } from '../lib/auth'
 
-class Index extends React.Component {
-  state = {}
-
-  render() {
-    return <div>Index</div>
-  }
-}
+const Index = ({ classes, auth }) => (
+  <main className={classes.root}>
+    {auth.user && auth.user._id ? (
+      <div>Auth User Page</div>
+    ) : (
+      <Grid
+        justify="center"
+        alignItems="center"
+        direction="row"
+        container
+        className={classes.heroContent}
+      >
+        <Typography component="h1" variant="h2" align="center" color="textPrimary" gutterBottom>
+          A Better Social Network
+        </Typography>
+        <Button
+          className={classes.fabButton}
+          variant="extendedFab"
+          color="primary"
+          onClick={() => Router.push('/signup')}
+        >
+          Get Started
+        </Button>
+      </Grid>
+    )}
+  </main>
+)
 
 const styles = theme => ({
   root: {
