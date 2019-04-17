@@ -16,9 +16,10 @@ import CloudUpload from '@material-ui/icons/CloudUpload'
 import FaceTwoTone from '@material-ui/icons/FaceTwoTone'
 import EditSharp from '@material-ui/icons/EditSharp'
 import withStyles from '@material-ui/core/styles/withStyles'
+import Router from 'next/router'
 
 import { authInitialProps } from '../lib/auth'
-import { getAuthUser } from '../lib/api'
+import { getAuthUser, updateUser } from '../lib/api'
 
 class EditProfile extends React.Component {
   state = {
@@ -27,12 +28,19 @@ class EditProfile extends React.Component {
     email: '',
     about: '',
     avatar: '',
+    avatarPreview: '',
+    openSuccess: false,
+    openError: false,
+    error: '',
+    updatedUser: null,
+    isSaving: false,
     isLoading: true
   }
 
   componentDidMount() {
     const { auth } = this.props
 
+    this.userData = new FormData()
     getAuthUser(auth.user._id)
       .then(user => {
         this.setState({
@@ -40,14 +48,48 @@ class EditProfile extends React.Component {
           isLoading: false
         })
       }).catch(err => {
-        console.error(err)
         this.setState({ isLoading: false })
       })
   }
 
+  handleChange = ({ target }) => {
+    let inputValue
+
+    if (target.name === 'avatar') {
+      inputValue = target.files[0]
+      this.setState({ avatarPreview: URL.createObjectURL(inputValue) })
+    } else {
+      inputValue = target.value
+    }
+    this.userData.set(target.name, inputValue)
+    this.setState({ [target.name]: inputValue })
+  }
+
+  handleSubmit = event => {
+    event.preventDefault()
+    this.setState({ isSaving: true })
+    updateUser(this.state._id, this.userData)
+      .then(updatedUser => {
+        this.setState({ updatedUser, openSuccess: true })
+        setTimeout(() => Router.push(`/profile/${this.state._id}`), 6000)
+      })
+      .catch(this.showError)
+  }
+
+  handleClose = () => this.setState({ openError: false })
+
+  showError = err => {
+    const error = (err.response && err.response.data) || err.message
+    this.setState({ error, openError: true, isSaving: false })
+  }
+
   render() {
     const { classes } = this.props
-    const { _id, name, email, about, avatar, isLoading } = this.state
+    const {
+      name, email, about, avatar, avatarPreview,
+      isLoading, isSaving, updatedUser, openSuccess,
+      openError, error
+    } = this.state
 
     return (
       <div className={classes.root}>
@@ -58,13 +100,13 @@ class EditProfile extends React.Component {
           <Typography variant="h5" component="h1">
             Edit Profile
           </Typography>
-          <form className={classes.form}>
+          <form onSubmit={this.handleSubmit} className={classes.form}>
             {isLoading ? (
               <Avatar className={classes.bigAvatar}>
                 <FaceTwoTone />
               </Avatar>
             ) : (
-              <Avatar src={avatar} className={classes.bigAvatar} />
+              <Avatar src={avatarPreview || avatar} className={classes.bigAvatar} />
             )}
             <input
               type="file"
@@ -110,16 +152,41 @@ class EditProfile extends React.Component {
               <Button
                 type="submit"
                 fullWidth
-                disabled={isLoading}
+                disabled={isSaving || isLoading}
                 variant="contained"
                 color="primary"
                 className={classes.submit}
               >
-                Save
+                {isSaving ? 'Saving...' : 'Save'}
               </Button>
             </FormControl>
           </form>
         </Paper>
+        
+        {error && <Snackbar
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'right'
+          }}
+          open={openError}
+          onClose={this.handleClose}
+          autoHideDuration={6000}
+          message={<span className={classes.snack}>{error}</span>}
+        />}
+        <Dialog
+          open={openSuccess}
+          disableBackdropClick={true}
+        >
+          <DialogTitle>
+            <VerifiedUserTwoTone className={classes.icon} />
+            Profile Updated
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              User {updatedUser && updatedUser.name} was successfully updated!
+            </DialogContentText>
+          </DialogContent>
+        </Dialog>
       </div>
     )
   }
