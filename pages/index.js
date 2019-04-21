@@ -7,10 +7,29 @@ import withStyles from '@material-ui/core/styles/withStyles'
 import Router from 'next/router'
 import { authInitialProps } from '../lib/auth'
 
+import PostFeed from '../components/index/PostFeed'
+import UserFeed from '../components/index/UserFeed'
+
 const Index = ({ classes, auth }) => (
   <main className={classes.root}>
     {auth.user && auth.user._id ? (
-      <div>Auth User Page</div>
+      <Grid container>
+        <Grid item xs={12} sm={12} md={7}>
+          <PostFeed auth={auth} />
+        </Grid>
+        <Grid item className={classes.drawerContainer}>
+          <Drawer
+            className={classes.drawer}
+            variant="permanent"
+            anchor="right"
+            classes={{
+              paper: classes.drawerPaper
+            }}
+          >
+            <UserFeed auth={auth} />
+          </Drawer>
+        </Grid>
+      </Grid>
     ) : (
       <Grid
         justify="center"
