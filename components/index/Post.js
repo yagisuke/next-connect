@@ -14,8 +14,38 @@ import FavoriteBorder from '@material-ui/icons/FavoriteBorder'
 import withStyles from '@material-ui/core/styles/withStyles'
 import Link from 'next/link'
 
-class Post extends React.Component {
-  state = {}
+import Comments from './Comments'
+
+class Post extends React.PureComponent {
+  state = {
+    isLiked: false,
+    numLikes: 0,
+    comments: []
+  }
+
+  componentDidMount() {
+    this.setState({
+      isLiked: this.checkLiked(this.props.post.likes),
+      numLikes: this.props.post.likes.length,
+      comments: this.props.post.comments
+    })
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.post.likes.length !== this.props.post.likes.length) {
+      this.setState({
+        isLiked: this.checkLiked(this.props.post.likes),
+        numLikes: this.props.post.likes.length
+      })
+    }
+    if (prevProps.post.comments.length !== this.props.post.comments.length) {
+      this.setState({
+        comments: this.props.post.comments
+      })
+    }
+  }
+
+  checkLiked = likes => likes.includes(this.props.auth.user._id)
 
   render() {
     const {
@@ -24,8 +54,10 @@ class Post extends React.Component {
       auth,
       isDeletingPost,
       handleDeletePost,
-      handleToggleLike
+      handleToggleLike,
+      handleAddComment
     } = this.props
+    const { isLiked, numLikes, comments } = this.state
     const isPostCreator = post.postedBy._id === auth.user._id
 
     return (
@@ -60,17 +92,27 @@ class Post extends React.Component {
         </CardContent>
         <CardActions>
           <IconButton onClick={() => handleToggleLike(post)} className={classes.button}>
-            <Badge badgeContent={0} color="secondary">
-              <FavoriteBorder className={classes.favoriteIcon} />
+            <Badge badgeContent={numLikes} color="secondary">
+              {isLiked ? (
+                <Favorite className={classes.favoriteIcon} />
+              ) : (
+                <FavoriteBorder className={classes.favoriteIcon} />
+              )}
             </Badge>
           </IconButton>
           <IconButton className={classes.button}>
-            <Badge badgeContent={0} color="primary">
+            <Badge badgeContent={comments.length} color="primary">
               <Comment className={classes.commentIcon} />
             </Badge>
           </IconButton>
         </CardActions>
         <Divider />
+        <Comments
+          auth={auth}
+          postId={post._id}
+          comments={comments}
+          handleAddComment={handleAddComment}
+        />
       </Card>
     )
   }
