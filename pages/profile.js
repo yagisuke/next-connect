@@ -13,9 +13,10 @@ import Edit from '@material-ui/icons/Edit'
 import withStyles from '@material-ui/core/styles/withStyles'
 import Link from 'next/link'
 
-import { getUser } from '../lib/api'
+import { getUser, getPostsByUser } from '../lib/api'
 import { authInitialProps } from '../lib/auth'
 
+import ProfileTabs from '../components/profile/ProfileTabs'
 import DeleteUser from '../components/profile/DeleteUser'
 import FollowUser from '../components/profile/FollowUser'
 
@@ -23,19 +24,22 @@ class Profile extends React.Component {
   state = {
     user: null,
     isAuth: false,
+    posts: [],
     isFollowing: false,
     isLoading: true
   }
 
   componentDidMount() {
     const { userId, auth } = this.props
-    const isAuth = auth.user._id === userId
     
-    getUser(userId).then(user => {
+    getUser(userId).then(async user => {
+      const isAuth = auth.user._id === userId
       const isFollowing = this.checkFollow(auth, user)
+      const posts = await getPostsByUser(userId)
       this.setState({
         user,
         isAuth,
+        posts,
         isFollowing,
         isLoading: false
       })
@@ -58,8 +62,8 @@ class Profile extends React.Component {
   }
 
   render() {
-    const { classes } = this.props
-    const { user, isAuth, isFollowing, isLoading } = this.state
+    const { classes, auth } = this.props
+    const { user, isAuth, posts, isFollowing, isLoading } = this.state
 
     return (
       <Paper className={classes.root} elevation={4}>
@@ -112,6 +116,11 @@ class Profile extends React.Component {
                 secondary={`Joined ${user.createdAt}`}
               />
             </ListItem>
+            <ProfileTabs
+              auth={auth}
+              user={user}
+              posts={posts}
+            />
           </List>
         )}
       </Paper>
