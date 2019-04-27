@@ -13,7 +13,7 @@ import Edit from '@material-ui/icons/Edit'
 import withStyles from '@material-ui/core/styles/withStyles'
 import Link from 'next/link'
 
-import { getUser, getPostsByUser } from '../lib/api'
+import { getUser, getPostsByUser, deletePost, likePost, unlikePost, addComment, deleteComment } from '../lib/api'
 import { authInitialProps } from '../lib/auth'
 
 import ProfileTabs from '../components/profile/ProfileTabs'
@@ -26,7 +26,8 @@ class Profile extends React.Component {
     isAuth: false,
     posts: [],
     isFollowing: false,
-    isLoading: true
+    isLoading: true,
+    handleDeletePost: false
   }
 
   componentDidMount() {
@@ -61,9 +62,77 @@ class Profile extends React.Component {
     })
   }
 
+  handleDeletePost = deletedPost => {
+    this.setState({ isDeletingPost: true })
+    deletePost(deletedPost._id)
+      .then(postData => {
+        const postIndex = this.state.posts.findIndex(post => post._id === postData._id)
+        const updatedPosts = [
+          ...this.state.posts.slice(0, postIndex),
+          ...this.state.posts.slice(postIndex + 1)
+        ]
+        this.setState({
+          posts: updatedPosts,
+          isDeletingPost: false
+        })
+      }).catch(err => {
+        console.error(err)
+        this.setState({ isDeletingPost: false })
+      })
+  }
+
+  handleToggleLike = post => {
+    const { auth } = this.props
+    const isPostLiked = post.likes.includes(auth.user._id)
+    const sendRequest = isPostLiked ? unlikePost : likePost
+    sendRequest(post._id)
+      .then(postData => {
+        const postIndex = this.state.posts.findIndex(
+          post => post._id === postData._id
+        )
+        const updatedPosts = [
+          ...this.state.posts.slice(0, postIndex),
+          postData,
+          ...this.state.posts.slice(postIndex + 1)
+        ]
+        this.setState({ posts: updatedPosts })
+      }).catch(err => console.error(err))
+  }
+
+  handleAddComment = (postId, text) => {
+    const comment = { text }
+    addComment(postId, comment)
+      .then(postData => {
+        const postIndex = this.state.posts.findIndex(
+          post => post._id === postData._id
+        )
+        const updatedPosts = [
+          ...this.state.posts.slice(0, postIndex),
+          postData,
+          ...this.state.posts.slice(postIndex + 1)
+        ]
+        this.setState({ posts: updatedPosts })
+      }).catch(err => console.error(err))
+  }
+
+  handleDeleteComment = (postId, comment) => {
+    deleteComment(postId, comment)
+      .then(postData => {
+        const postIndex = this.state.posts.findIndex(
+          post => post._id === postData._id
+        )
+        const deletedPosts = [
+          ...this.state.posts.slice(0, postIndex),
+          postData,
+          ...this.state.posts.slice(postIndex + 1)
+        ]
+        this.setState({ posts: deletedPosts })
+      }).catch(err => console.error(err))
+  }
+
   render() {
     const { classes, auth } = this.props
-    const { user, isAuth, posts, isFollowing, isLoading } = this.state
+    const { user, isAuth, posts, isFollowing, isLoading, isDeletingPost } = this.state
 
     return (
       <Paper className={classes.root} elevation={4}>
@@ -118,8 +187,12 @@ class Profile extends React.Component {
             </ListItem>
             <ProfileTabs
               auth={auth}
-              user={user}
               posts={posts}
+              isDeletingPost={isDeletingPost}
+              handleDeletePost={this.handleDeletePost}
+              handleToggleLike={this.handleToggleLike}
+              handleAddComment={this.handleAddComment}
+              handleDeleteComment={this.handleDeleteComment}
             />
           </List>
         )}
