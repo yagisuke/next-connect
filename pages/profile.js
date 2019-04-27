@@ -12,6 +12,7 @@ import Divider from '@material-ui/core/Divider'
 import Edit from '@material-ui/icons/Edit'
 import withStyles from '@material-ui/core/styles/withStyles'
 import Link from 'next/link'
+import format from 'date-fns/format'
 
 import { getUser, getPostsByUser, deletePost, likePost, unlikePost, addComment, deleteComment } from '../lib/api'
 import { authInitialProps } from '../lib/auth'
@@ -130,6 +131,9 @@ class Profile extends React.Component {
       }).catch(err => console.error(err))
   }
 
+  // ex) Thursday, April 4th, 2019
+  formatDate = date => format(date, 'dddd, MMMM Do, YYYY')
+
   render() {
     const { classes, auth } = this.props
     const { user, isAuth, posts, isFollowing, isLoading, isDeletingPost } = this.state
@@ -182,7 +186,7 @@ class Profile extends React.Component {
             <ListItem>
               <ListItemText
                 primary={user.about}
-                secondary={`Joined ${user.createdAt}`}
+                secondary={`Joined ${this.formatDate(user.createdAt)}`}
               />
             </ListItem>
             <ProfileTabs
